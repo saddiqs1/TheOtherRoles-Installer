@@ -13,6 +13,17 @@ jobs:
       - name: Check out code
         uses: actions/checkout@v2
 
+      - name: Set output
+        id: vars
+        run: echo "tag=${GITHUB_REF#refs/*/}" >> $GITHUB_OUTPUT
+
+      - name: Check output
+        env:
+          RELEASE_VERSION: ${{ steps.vars.outputs.tag }}
+        run: |
+          echo $RELEASE_VERSION
+          echo ${{ steps.vars.outputs.tag }}
+
       - name: Set up Go
         uses: actions/setup-go@v2
         with:
@@ -21,23 +32,9 @@ jobs:
       - name: Build executable
         run: go build -o TheOtherRolesInstaller-Windows.exe main.go
 
-      - name: Create Release
-        id: create_release
-        uses: actions/create-release@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          tag_name: ${{ github.ref }}
-          release_name: Release ${{ github.ref }}
-          draft: false
-          prerelease: false
-
       - name: Upload Release Asset
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        uses: ncipollo/release-action@v1.12.0
         with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: TheOtherRolesInstaller-Windows.exe
-          asset_name: TheOtherRolesInstaller-Windows.exe
-          asset_content_type: application/octet-stream
+          artifacts: 'TheOtherRolesInstaller-Windows.exe'
+          name: 'Build ${{ steps.vars.outputs.tag }}'
+          tag: 'build-${{ steps.vars.outputs.tag }}'
