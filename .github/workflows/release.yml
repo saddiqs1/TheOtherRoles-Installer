@@ -2,12 +2,13 @@ name: Release Windows Installer
 
 on:
   push:
-    tags:
-      - 'v*'
+    branches:
+      - main
 
 jobs:
   build-and-release:
     runs-on: windows-latest
+    permissions: write-all
 
     steps:
       - name: Check out code
@@ -16,13 +17,6 @@ jobs:
       - name: Set output
         id: vars
         run: echo "tag=${GITHUB_REF#refs/*/}" >> $GITHUB_OUTPUT
-
-      - name: Check output
-        env:
-          RELEASE_VERSION: ${{ steps.vars.outputs.tag }}
-        run: |
-          echo $RELEASE_VERSION
-          echo ${{ steps.vars.outputs.tag }}
 
       - name: Set up Go
         uses: actions/setup-go@v2
@@ -36,5 +30,5 @@ jobs:
         uses: ncipollo/release-action@v1.12.0
         with:
           artifacts: 'TheOtherRolesInstaller-Windows.exe'
-          name: 'Build ${{ steps.vars.outputs.tag }}'
-          tag: 'build-${{ steps.vars.outputs.tag }}'
+          name: 'Build ${{ github.run_number }}'
+          tag: 'build-${{ github.run_number }}'
